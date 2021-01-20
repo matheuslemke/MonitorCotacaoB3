@@ -15,23 +15,46 @@ namespace MonitorCotacaoB3
             // Ler entradas
             string symbol = "PETR4.SA";
             float salePrice = 32.67F;
-            float purchasePrice = 26.59F;
+            float purchasePrice = 29.59F;
 
             // Rodar continuamente
-            YahooFinanceAPI api = new YahooFinanceAPI();
-            Response response = api.GetSummary(symbol);
+            StockPriceChecker stockPriceChecker = new StockPriceChecker();
+            stockPriceChecker.checkPrices(symbol, salePrice, purchasePrice);
 
-            float price = response.price.regularMarketPrice.fmt;
+        }
+    }
 
-            if (price >= salePrice)
+    class StockPriceChecker
+    {
+        private readonly YahooFinanceAPI api = new YahooFinanceAPI();
+        private readonly StockRecommend recommend = new StockRecommend();
+
+        public void checkPrices(string symbol, float salePrice, float purchasePrice)
+        {
+            float price = api.GetCurrentPrice(symbol);
+
+            if (price <= purchasePrice)
             {
-                Console.WriteLine("Vender");
+                recommend.purchase();
             }
-            else if (price <= purchasePrice)
+            else if (price >= salePrice)
             {
-                Console.WriteLine("Comprar");
+                recommend.sale();
             }
 
+        }
+    }
+
+    class StockRecommend
+    {
+        public void sale()
+        {
+            Console.WriteLine("Vender");
+        }
+
+        public void purchase()
+        {
+            Console.WriteLine("Comprar");
         }
     }
 
@@ -43,8 +66,9 @@ namespace StockAPI
     public class YahooFinanceAPI
     {
         private readonly HttpClient Client = new HttpClient();
+        private readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
-        public Response GetSummary(string symbol)
+        public float GetCurrentPrice(string symbol)
         {
             Client.BaseAddress = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com");
             Client.DefaultRequestHeaders.Accept.Clear();
@@ -57,12 +81,14 @@ namespace StockAPI
             if (response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-                var serializer = new JavaScriptSerializer();
-                Response yahooResponse = serializer.Deserialize<Response>(result);
-                return yahooResponse;
+                
+                Response yahooResponse = Serializer.Deserialize<Response>(result);
+
+                float fmt = yahooResponse.price.regularMarketPrice.fmt;
+                return fmt;
             }
 
-            return new Response();
+            return 0F;
         }
 
     }
