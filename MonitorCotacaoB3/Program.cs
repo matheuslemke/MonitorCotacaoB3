@@ -9,21 +9,42 @@ namespace MonitorCotacaoB3
 {
     class Program
     {
+
         static void Main(string[] args)
         {
-            YahooFinanceAPI yahooFinanceAPI = new YahooFinanceAPI();
-            yahooFinanceAPI.CheckPrice("PETR4.SA");
+            // Ler entradas
+            string symbol = "PETR4.SA";
+            float salePrice = 32.67F;
+            float purchasePrice = 26.59F;
+
+            // Rodar continuamente
+            YahooFinanceAPI api = new YahooFinanceAPI();
+            Response response = api.GetSummary(symbol);
+
+            float price = response.price.regularMarketPrice.fmt;
+
+            if (price >= salePrice)
+            {
+                Console.WriteLine("Vender");
+            }
+            else if (price <= purchasePrice)
+            {
+                Console.WriteLine("Comprar");
+            }
+
         }
     }
+
 }
 
 namespace StockAPI
 {
+
     public class YahooFinanceAPI
     {
-        static HttpClient Client = new HttpClient();
+        private readonly HttpClient Client = new HttpClient();
 
-        public void CheckPrice(string symbol)
+        public Response GetSummary(string symbol)
         {
             Client.BaseAddress = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com");
             Client.DefaultRequestHeaders.Accept.Clear();
@@ -37,10 +58,11 @@ namespace StockAPI
             {
                 string result = response.Content.ReadAsStringAsync().Result;
                 var serializer = new JavaScriptSerializer();
-                YahooResponse yahooResponse = serializer.Deserialize<YahooResponse>(result);
-                Console.WriteLine(yahooResponse.ToString());
+                Response yahooResponse = serializer.Deserialize<Response>(result);
+                return yahooResponse;
             }
 
+            return new Response();
         }
 
     }
@@ -48,13 +70,14 @@ namespace StockAPI
 
 namespace Model
 {
-    public class YahooResponse
+
+    public class Response
     {
         public Price price { get; set; }
 
         public override string ToString()
         {
-            return $"{base.ToString()} : Raw: {price.regularMarketPrice.raw} Fmt: {price.regularMarketPrice.fmt}";
+            return $"price: {price}";
         }
     }
 
@@ -64,17 +87,19 @@ namespace Model
 
         public override string ToString()
         {
-            return $"{base.ToString()} : Raw: {regularMarketPrice.raw} Fmt: {regularMarketPrice.fmt}";
+            return $"regularMarketPrice: {regularMarketPrice}";
         }
 
     }
 
     public class RegularMarketPrice
     {
-        public float raw { get; set; }
         public float fmt { get; set; }
 
+        public override string ToString()
+        {
+            return $"fmt: {fmt}";
+        }
     }
-
 
 }
