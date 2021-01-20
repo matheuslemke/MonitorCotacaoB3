@@ -1,4 +1,5 @@
 ﻿using Model;
+using Nancy.Json;
 using StockAPI;
 using System;
 using System.Net.Http;
@@ -11,7 +12,7 @@ namespace MonitorCotacaoB3
         static void Main(string[] args)
         {
             YahooFinanceAPI yahooFinanceAPI = new YahooFinanceAPI();
-            yahooFinanceAPI.checkPrice("PETR4.SA");
+            yahooFinanceAPI.CheckPrice("PETR4.SA");
         }
     }
 }
@@ -20,26 +21,24 @@ namespace StockAPI
 {
     public class YahooFinanceAPI
     {
-        static HttpClient client = new HttpClient();
+        static HttpClient Client = new HttpClient();
 
-        public async void checkPrice(string symbol)
+        public void CheckPrice(string symbol)
         {
-            client.BaseAddress = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com");
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("X-RAPIDAPI-KEY", "22fe836a6bmsh1d796034ff46278p10a23cjsn59c17d10c169");
-            client.DefaultRequestHeaders.Add("X-RAPIDAPI-HOST", "apidojo-yahoo-finance-v1.p.rapidapi.com");
+            Client.BaseAddress = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com");
+            Client.DefaultRequestHeaders.Accept.Clear();
+            Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            Client.DefaultRequestHeaders.Add("X-RAPIDAPI-KEY", "22fe836a6bmsh1d796034ff46278p10a23cjsn59c17d10c169");
+            Client.DefaultRequestHeaders.Add("X-RAPIDAPI-HOST", "apidojo-yahoo-finance-v1.p.rapidapi.com");
 
-            HttpResponseMessage response = client.GetAsync($"/stock/v2/get-summary?symbol={symbol}").Result;
-
+            HttpResponseMessage response = Client.GetAsync($"/stock/v2/get-summary?symbol={symbol}").Result;
+            
             if (response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
-
-                StockPrice content = Newtonsoft.Json.JsonConvert.DeserializeObject<StockPrice>(result);
-
-                //StockPrice content = await response.Content.ReadAsAsync<StockPrice>();
-                Console.WriteLine(content.regularMarketPrice.fmt);
+                var serializer = new JavaScriptSerializer();
+                YahooResponse yahooResponse = serializer.Deserialize<YahooResponse>(result);
+                Console.WriteLine(yahooResponse.ToString());
             }
 
         }
@@ -49,6 +48,27 @@ namespace StockAPI
 
 namespace Model
 {
+    public class YahooResponse
+    {
+        public Price price { get; set; }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()} : Raw: {price.regularMarketPrice.raw} Fmt: {price.regularMarketPrice.fmt}";
+        }
+    }
+
+    public class Price
+    {
+        public RegularMarketPrice regularMarketPrice { get; set; }
+
+        public override string ToString()
+        {
+            return $"{base.ToString()} : Raw: {regularMarketPrice.raw} Fmt: {regularMarketPrice.fmt}";
+        }
+
+    }
+
     public class RegularMarketPrice
     {
         public float raw { get; set; }
@@ -56,14 +76,5 @@ namespace Model
 
     }
 
-    public class StockPrice
-    {        
-        public RegularMarketPrice regularMarketPrice { get; set; }
 
-        //public override string ToString()
-        //{
-        //    return $"{base.ToString()} : Raw: {regularMarketPrice.raw} Fmt: {regularMarketPrice.fmt}";
-        //}
-
-    }
 }
