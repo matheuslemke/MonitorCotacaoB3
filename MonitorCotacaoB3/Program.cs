@@ -4,6 +4,7 @@ using StockAPI;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Timers;
 
 namespace MonitorCotacaoB3
 {
@@ -17,9 +18,35 @@ namespace MonitorCotacaoB3
             float salePrice = 32.67F;
             float purchasePrice = 29.59F;
 
-            // Rodar continuamente
-            StockPriceChecker stockPriceChecker = new StockPriceChecker();
-            stockPriceChecker.checkPrices(symbol, salePrice, purchasePrice);
+            StockTimer stockTimer = new StockTimer();
+            stockTimer.SetTimer(symbol, salePrice, purchasePrice);
+        }
+
+    }
+
+    class StockTimer
+    {
+        private readonly StockPriceChecker stockPriceChecker = new StockPriceChecker();
+
+        public void SetTimer(string symbol, float salePrice, float purchasePrice)
+        {
+
+            Timer timer = new Timer(6000);
+            
+            timer.Elapsed += (sender, e) => {
+                Console.WriteLine("The Elapsed event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
+                stockPriceChecker.checkPrices(symbol, salePrice, purchasePrice);
+            };
+            timer.AutoReset = true;
+            timer.Enabled = true;
+
+            Console.WriteLine("\nPress the Enter key to exit the application...\n");
+            Console.WriteLine("The application started at {0:HH:mm:ss.fff}", DateTime.Now);
+            Console.ReadLine();
+            timer.Stop();
+            timer.Dispose();
+
+            Console.WriteLine("Terminating the application...");
 
         }
     }
@@ -33,15 +60,17 @@ namespace MonitorCotacaoB3
         {
             float price = api.GetCurrentPrice(symbol);
 
-            if (price <= purchasePrice)
+            if (price >= 0F)
             {
-                recommend.purchase();
+                if (price <= purchasePrice)
+                {
+                    recommend.purchase();
+                }
+                else if (price >= salePrice)
+                {
+                    recommend.sale();
+                }
             }
-            else if (price >= salePrice)
-            {
-                recommend.sale();
-            }
-
         }
     }
 
@@ -68,16 +97,19 @@ namespace StockAPI
         private readonly HttpClient Client = new HttpClient();
         private readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
-        public float GetCurrentPrice(string symbol)
+        public YahooFinanceAPI()
         {
             Client.BaseAddress = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com");
             Client.DefaultRequestHeaders.Accept.Clear();
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Client.DefaultRequestHeaders.Add("X-RAPIDAPI-KEY", "22fe836a6bmsh1d796034ff46278p10a23cjsn59c17d10c169");
             Client.DefaultRequestHeaders.Add("X-RAPIDAPI-HOST", "apidojo-yahoo-finance-v1.p.rapidapi.com");
+        }
 
+        public float GetCurrentPrice(string symbol)
+        {
             HttpResponseMessage response = Client.GetAsync($"/stock/v2/get-summary?symbol={symbol}").Result;
-            
+
             if (response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
@@ -88,7 +120,7 @@ namespace StockAPI
                 return fmt;
             }
 
-            return 0F;
+            return -1F;
         }
 
     }
