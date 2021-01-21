@@ -34,7 +34,7 @@ namespace QuoteManager
             try
             {
                 client.Send(emailFrom, emailTo, subject, message);
-                Console.WriteLine("Email sent");
+                Console.WriteLine($"Email {subject} sent");
             }
             catch (Exception e)
             {

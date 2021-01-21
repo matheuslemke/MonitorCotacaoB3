@@ -1,6 +1,7 @@
 ﻿using Model;
 using Nancy.Json;
 using System;
+using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -8,6 +9,7 @@ namespace QuoteAPI
 {
     public class YahooFinanceAPI
     {
+        private readonly System.Collections.Specialized.NameValueCollection appSettings = ConfigurationManager.AppSettings;
         private readonly HttpClient Client = new HttpClient();
         private readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
@@ -16,8 +18,8 @@ namespace QuoteAPI
             Client.BaseAddress = new Uri("https://apidojo-yahoo-finance-v1.p.rapidapi.com");
             Client.DefaultRequestHeaders.Accept.Clear();
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            Client.DefaultRequestHeaders.Add("X-RAPIDAPI-KEY", "22fe836a6bmsh1d796034ff46278p10a23cjsn59c17d10c169");
-            Client.DefaultRequestHeaders.Add("X-RAPIDAPI-HOST", "apidojo-yahoo-finance-v1.p.rapidapi.com");
+            Client.DefaultRequestHeaders.Add("X-RAPIDAPI-KEY", appSettings["RapidKey"]);
+            Client.DefaultRequestHeaders.Add("X-RAPIDAPI-HOST", appSettings["RapidHost"]);
         }
 
         public float GetCurrentPrice(string symbol)
