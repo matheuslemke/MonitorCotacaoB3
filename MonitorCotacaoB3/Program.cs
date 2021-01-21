@@ -4,11 +4,13 @@ using Reader;
 using QuoteAPI;
 using QuoteManager;
 using System;
+using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Timers;
 using System.Net;
 using System.Net.Mail;
+using MonitorCotacaoB3;
 
 namespace MonitorCotacaoB3
 {
@@ -17,14 +19,11 @@ namespace MonitorCotacaoB3
 
         static void Main(string[] args)
         {
-            //ConsoleReader consoleReader = new ConsoleReader();
-            //StockPrices stockPrices = consoleReader.readStockPrices();
+            ConsoleReader consoleReader = new ConsoleReader();
+            StockPrices stockPrices = consoleReader.readStockPrices();
 
-            //StockQuoteTimer timer = new StockQuoteTimer(6000);
-            //timer.StartTimer(stockPrices);
-
-            QuoteMail quoteMail = new QuoteMail();
-            quoteMail.SendMail("teste sub", "test body");
+            StockQuoteTimer timer = new StockQuoteTimer(15000);
+            timer.StartTimer(stockPrices);
         }
 
     }
@@ -58,27 +57,39 @@ namespace MonitorCotacaoB3
 
     public class QuoteMail
     {
-
-        private string emailFrom;
-        private string emailTo;
-        private SmtpClient client;
+        private readonly System.Collections.Specialized.NameValueCollection appSettings = ConfigurationManager.AppSettings;
+        private readonly string emailFrom;
+        private readonly string emailTo;
+        private readonly SmtpClient client;
 
         public QuoteMail()
         {
-            emailFrom = "a@gmail.com";
-            emailTo = "b@gmail.com";
+            emailFrom = appSettings["MailFrom"];
+            emailTo = appSettings["MailTo"];
 
-            client = new SmtpClient("smtp.mailtrap.io", 2525)
+            string host = appSettings["SMTPHost"];
+            int port = Int32.Parse(appSettings["SMTPPort"]);
+            string user = appSettings["SMTPUser"];
+            string password = appSettings["SMTPPassword"];
+
+            client = new SmtpClient(host, port)
             {
-                Credentials = new NetworkCredential("18c2fcbc7ad625", "5a0a1eb6970b3c"),
+                Credentials = new NetworkCredential(user, password),
                 EnableSsl = true
             };
         }
 
         public void SendMail(string subject, string message)
         {
-            client.Send(emailFrom, emailTo, subject, message);
-            Console.WriteLine("Email sent");
+            try
+            {
+                client.Send(emailFrom, emailTo, subject, message);
+                Console.WriteLine("Email sent");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 
@@ -118,11 +129,11 @@ namespace QuoteManager
             {
                 if (price <= stockPrices.purchasePrice)
                 {
-                    recommend.purchase();
+                    recommend.Purchase();
                 }
                 else if (price >= stockPrices.salePrice)
                 {
-                    recommend.sale();
+                    recommend.Sale();
                 }
             }
         }
@@ -130,15 +141,16 @@ namespace QuoteManager
 
     class QuoteRecommend
     {
+        private readonly QuoteMail mail = new QuoteMail();
 
-        public void purchase()
+        public void Purchase()
         {
-            Console.WriteLine("Comprar");
+            mail.SendMail("Comprar", "Comprar");
         }
 
-        public void sale()
+        public void Sale()
         {
-            Console.WriteLine("Vender");
+            mail.SendMail("Vender", "Vender");
         }
     }
 }
