@@ -1,10 +1,14 @@
 ﻿using Model;
 using Nancy.Json;
-using StockAPI;
+using Reader;
+using QuoteAPI;
+using QuoteManager;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Timers;
+using System.Net;
+using System.Net.Mail;
 
 namespace MonitorCotacaoB3
 {
@@ -13,60 +17,110 @@ namespace MonitorCotacaoB3
 
         static void Main(string[] args)
         {
-            // Ler entradas
-            string symbol = "PETR4.SA";
-            float salePrice = 32.67F;
-            float purchasePrice = 29.59F;
+            //ConsoleReader consoleReader = new ConsoleReader();
+            //StockPrices stockPrices = consoleReader.readStockPrices();
 
-            StockTimer stockTimer = new StockTimer();
-            stockTimer.SetTimer(symbol, salePrice, purchasePrice);
+            //StockQuoteTimer timer = new StockQuoteTimer(6000);
+            //timer.StartTimer(stockPrices);
+
+            QuoteMail quoteMail = new QuoteMail();
+            quoteMail.SendMail("teste sub", "test body");
         }
 
     }
 
-    class StockTimer
+    class StockQuoteTimer
     {
-        private readonly StockPriceChecker stockPriceChecker = new StockPriceChecker();
+        private readonly QuotePriceChecker quotePriceChecker = new QuotePriceChecker();
+        private readonly int millis;
 
-        public void SetTimer(string symbol, float salePrice, float purchasePrice)
+        public StockQuoteTimer(int millis)
         {
+            this.millis = millis;
+        }
 
-            Timer timer = new Timer(6000);
-            
-            timer.Elapsed += (sender, e) => {
-                Console.WriteLine("The Elapsed event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
-                stockPriceChecker.checkPrices(symbol, salePrice, purchasePrice);
+        public void StartTimer(StockPrices stockPrices)
+        {
+            Timer timer = new Timer(millis);
+
+            timer.Elapsed += (s, eventTime) => {
+                Console.WriteLine("Querying quote price at {0:HH:mm:ss.fff}", eventTime.SignalTime);
+                quotePriceChecker.check(stockPrices);
             };
             timer.AutoReset = true;
             timer.Enabled = true;
 
-            Console.WriteLine("\nPress the Enter key to exit the application...\n");
-            Console.WriteLine("The application started at {0:HH:mm:ss.fff}", DateTime.Now);
             Console.ReadLine();
             timer.Stop();
             timer.Dispose();
-
-            Console.WriteLine("Terminating the application...");
-
         }
     }
 
-    class StockPriceChecker
+    public class QuoteMail
+    {
+
+        private string emailFrom;
+        private string emailTo;
+        private SmtpClient client;
+
+        public QuoteMail()
+        {
+            emailFrom = "a@gmail.com";
+            emailTo = "b@gmail.com";
+
+            client = new SmtpClient("smtp.mailtrap.io", 2525)
+            {
+                Credentials = new NetworkCredential("18c2fcbc7ad625", "5a0a1eb6970b3c"),
+                EnableSsl = true
+            };
+        }
+
+        public void SendMail(string subject, string message)
+        {
+            client.Send(emailFrom, emailTo, subject, message);
+            Console.WriteLine("Email sent");
+        }
+    }
+
+}
+
+namespace Reader
+{
+    public class ConsoleReader
+    {
+        public StockPrices readStockPrices()
+        {
+            StockPrices stockPrices = new StockPrices();
+
+            // Read from console
+
+            stockPrices.symbol = "PETR4.SA";
+            stockPrices.salePrice = 32.67F;
+            stockPrices.purchasePrice = 29.59F;
+            return stockPrices;
+        }
+    }
+}
+
+namespace QuoteManager
+{
+
+    class QuotePriceChecker
     {
         private readonly YahooFinanceAPI api = new YahooFinanceAPI();
-        private readonly StockRecommend recommend = new StockRecommend();
+        private readonly QuoteRecommend recommend = new QuoteRecommend();
 
-        public void checkPrices(string symbol, float salePrice, float purchasePrice)
+        public void check(StockPrices stockPrices)
         {
-            float price = api.GetCurrentPrice(symbol);
+            float price = api.GetCurrentPrice(stockPrices.symbol);
 
             if (price >= 0F)
             {
-                if (price <= purchasePrice)
+                if (price <= stockPrices.purchasePrice)
                 {
                     recommend.purchase();
                 }
-                else if (price >= salePrice)
+                else if (price >= stockPrices.salePrice)
                 {
                     recommend.sale();
                 }
@@ -74,22 +128,22 @@ namespace MonitorCotacaoB3
         }
     }
 
-    class StockRecommend
+    class QuoteRecommend
     {
-        public void sale()
-        {
-            Console.WriteLine("Vender");
-        }
 
         public void purchase()
         {
             Console.WriteLine("Comprar");
         }
-    }
 
+        public void sale()
+        {
+            Console.WriteLine("Vender");
+        }
+    }
 }
 
-namespace StockAPI
+namespace QuoteAPI
 {
 
     public class YahooFinanceAPI
@@ -128,6 +182,16 @@ namespace StockAPI
 
 namespace Model
 {
+
+    public class StockPrices
+    {
+        public string symbol { get; set; }
+
+        public float salePrice { get; set; }
+        
+        public float purchasePrice { get; set; }
+
+    }
 
     public class Response
     {
