@@ -20,8 +20,8 @@ namespace QuoteManager
             Console.WriteLine("\nStarting application...");
 
             timer.Elapsed += (s, eventTime) => {
-                Console.WriteLine($"Querying {stockPrices.Symbol} price at {0:HH:mm:ss.fff}", eventTime.SignalTime);
-                quotePriceChecker.check(stockPrices);
+                Console.WriteLine($"Querying {stockPrices.Symbol} price at {eventTime.SignalTime}");
+                quotePriceChecker.Check(stockPrices);
             };
             timer.AutoReset = true;
             timer.Enabled = true;

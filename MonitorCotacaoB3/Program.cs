@@ -15,7 +15,7 @@ namespace MonitorCotacaoB3
                 ConsoleReader consoleReader = new ConsoleReader();
                 StockPrices stockPrices = consoleReader.ReadStockPrices();
 
-                StockQuoteTimer timer = new StockQuoteTimer(3000);
+                StockQuoteTimer timer = new StockQuoteTimer(10000);
                 timer.StartTimer(stockPrices);
             }
             catch (Exception e)

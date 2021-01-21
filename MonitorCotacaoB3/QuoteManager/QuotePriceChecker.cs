@@ -1,4 +1,5 @@
-﻿using QuoteAPI;
+﻿using Model;
+using QuoteAPI;
 
 namespace QuoteManager
 {
@@ -7,7 +8,7 @@ namespace QuoteManager
         private readonly YahooFinanceAPI api = new YahooFinanceAPI();
         private readonly QuoteRecommend recommend = new QuoteRecommend();
 
-        public void check(Model.StockPrices stockPrices)
+        public void Check(StockPrices stockPrices)
         {
             float price = api.GetCurrentPrice(stockPrices.Symbol);
 
