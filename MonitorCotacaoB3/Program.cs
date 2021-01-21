@@ -1,16 +1,7 @@
 ﻿using Model;
-using Nancy.Json;
 using Reader;
-using QuoteAPI;
 using QuoteManager;
 using System;
-using System.Configuration;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Timers;
-using System.Net;
-using System.Net.Mail;
-using MonitorCotacaoB3;
 
 namespace MonitorCotacaoB3
 {
@@ -19,17 +10,21 @@ namespace MonitorCotacaoB3
 
         static void Main(string[] args)
         {
-            ConsoleReader consoleReader = new ConsoleReader();
-            StockPrices stockPrices = consoleReader.readStockPrices();
+            try
+            {
+                ConsoleReader consoleReader = new ConsoleReader();
+                StockPrices stockPrices = consoleReader.ReadStockPrices();
 
-            StockQuoteTimer timer = new StockQuoteTimer(15000);
-            timer.StartTimer(stockPrices);
+                StockQuoteTimer timer = new StockQuoteTimer(3000);
+                timer.StartTimer(stockPrices);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
     }
-
-
-
     
 
 }

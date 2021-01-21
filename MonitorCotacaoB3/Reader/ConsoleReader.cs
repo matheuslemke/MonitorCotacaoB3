@@ -5,19 +5,24 @@ namespace Reader
 {
     public class ConsoleReader
     {
-        public StockPrices readStockPrices()
+        public StockPrices ReadStockPrices()
         {
             StockPrices stockPrices = new StockPrices();
 
-            try
+            Console.WriteLine("Enter symbol, selling price and purchase price separated by space...\n");
+
+            string inputLine = Console.ReadLine();
+                
+            if (!string.IsNullOrEmpty(inputLine))
             {
-                stockPrices.Symbol = Console.ReadLine();
-                stockPrices.SalePrice = Console.Read();
-                stockPrices.PurchasePrice = Console.Read();
+                string[] args = inputLine.Split(" ");
+                stockPrices.Symbol = args[0];
+                stockPrices.SalePrice = float.Parse(args[1]);
+                stockPrices.PurchasePrice = float.Parse(args[2]);
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine(e);
+                throw new Exception("Problem with input");
             }
 
             return stockPrices;

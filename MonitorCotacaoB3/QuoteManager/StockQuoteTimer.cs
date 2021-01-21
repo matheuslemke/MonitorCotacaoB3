@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Model;
+using System;
 using System.Timers;
 
 namespace QuoteManager
@@ -13,13 +14,13 @@ namespace QuoteManager
             this.millis = millis;
         }
 
-        public void StartTimer(Model.StockPrices stockPrices)
+        public void StartTimer(StockPrices stockPrices)
         {
             Timer timer = new Timer(millis);
-            Console.WriteLine("Starting application...");
+            Console.WriteLine("\nStarting application...");
 
             timer.Elapsed += (s, eventTime) => {
-                Console.WriteLine("Querying quote price at {0:HH:mm:ss.fff}", eventTime.SignalTime);
+                Console.WriteLine($"Querying {stockPrices.Symbol} price at {0:HH:mm:ss.fff}", eventTime.SignalTime);
                 quotePriceChecker.check(stockPrices);
             };
             timer.AutoReset = true;

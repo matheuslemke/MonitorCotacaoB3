@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Net;
 using System.Net.Mail;
 
@@ -37,7 +38,7 @@ namespace QuoteManager
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                throw e;
             }
         }
     }

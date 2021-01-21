@@ -27,13 +27,13 @@ namespace QuoteAPI
             if (response.IsSuccessStatusCode)
             {
                 string result = response.Content.ReadAsStringAsync().Result;
+                Response content = Serializer.Deserialize<Response>(result);
 
-                Response yahooResponse = Serializer.Deserialize<Response>(result);
-
-                float fmt = yahooResponse.price.regularMarketPrice.fmt;
+                float fmt = content.price.regularMarketPrice.fmt;
                 return fmt;
             }
 
+            
             return -1F;
         }
 

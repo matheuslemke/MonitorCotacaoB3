@@ -5,9 +5,6 @@ namespace Model
     {
         public float fmt { get; set; }
 
-        public override string ToString()
-        {
-            return $"fmt: {fmt}";
-        }
     }
+
 }
