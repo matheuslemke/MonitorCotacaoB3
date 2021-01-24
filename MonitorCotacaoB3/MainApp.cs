@@ -5,9 +5,8 @@ using System;
 
 namespace MonitorCotacaoB3
 {
-    class Program
+    class MainApp
     {
-
         static void Main(string[] args)
         {
             try
@@ -15,7 +14,7 @@ namespace MonitorCotacaoB3
                 ConsoleReader consoleReader = new ConsoleReader();
                 StockPrices stockPrices = consoleReader.ReadStockPrices();
 
-                StockQuoteTimer timer = new StockQuoteTimer(10000);
+                StockQuoteTimer timer = new StockQuoteTimer(5000);
                 timer.StartTimer(stockPrices);
             }
             catch (Exception e)

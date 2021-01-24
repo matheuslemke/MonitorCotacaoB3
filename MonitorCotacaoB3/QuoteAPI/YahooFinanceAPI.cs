@@ -24,20 +24,24 @@ namespace QuoteAPI
 
         public float GetCurrentPrice(string symbol)
         {
+            Console.WriteLine($"Consultando preço do ativo {symbol}");
             HttpResponseMessage response = Client.GetAsync($"/stock/v2/get-summary?symbol={symbol}").Result;
+            string result = response.Content.ReadAsStringAsync().Result;
 
-            if (response.IsSuccessStatusCode)
+            if (QuoteFound(result))
             {
-                string result = response.Content.ReadAsStringAsync().Result;
                 Response content = Serializer.Deserialize<Response>(result);
 
                 float fmt = content.price.regularMarketPrice.fmt;
+                Console.WriteLine($"Preço atual R$ {fmt}");
                 return fmt;
             }
-
-            
-            return -1F;
+            throw new Exception("Ativo não encontrado.");
         }
 
+        private bool QuoteFound(string result)
+        {
+            return !string.IsNullOrEmpty(result);
+        }
     }
 }

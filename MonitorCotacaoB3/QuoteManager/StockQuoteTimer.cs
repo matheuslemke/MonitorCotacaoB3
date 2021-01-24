@@ -17,10 +17,11 @@ namespace QuoteManager
         public void StartTimer(StockPrices stockPrices)
         {
             Timer timer = new Timer(millis);
-            Console.WriteLine("\nStarting application...");
+            Console.Write("Iniciando aplicação - ");
+            quotePriceChecker.Check(stockPrices);
 
             timer.Elapsed += (s, eventTime) => {
-                Console.WriteLine($"Querying {stockPrices.Symbol} price at {eventTime.SignalTime}");
+                Console.Write($"{eventTime.SignalTime} - ");
                 quotePriceChecker.Check(stockPrices);
             };
             timer.AutoReset = true;

@@ -8,17 +8,39 @@ namespace QuoteManager
     public class QuoteMail
     {
         private readonly System.Collections.Specialized.NameValueCollection appSettings = ConfigurationManager.AppSettings;
-        private readonly string emailFrom;
-        private readonly string emailTo;
-        private readonly SmtpClient client;
+        private string emailFrom;
+        private string emailTo;
+        private SmtpClient client;
 
         public QuoteMail()
         {
+            ReadEmailsFromSettings();
+            ReadSMTPFromSettings();
+        }
+
+        public void SendMail(string subject, string message)
+        {
+            try
+            {
+                client.Send(emailFrom, emailTo, subject, message);
+                Console.WriteLine($"Email \"{subject}\" enviado.");
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        private void ReadEmailsFromSettings()
+        {
             emailFrom = appSettings["MailFrom"];
             emailTo = appSettings["MailTo"];
+        }
 
+        private void ReadSMTPFromSettings()
+        {
             string host = appSettings["SMTPHost"];
-            int port = Int32.Parse(appSettings["SMTPPort"]);
+            int port = int.Parse(appSettings["SMTPPort"]);
             string user = appSettings["SMTPUser"];
             string password = appSettings["SMTPPassword"];
 
@@ -27,19 +49,6 @@ namespace QuoteManager
                 Credentials = new NetworkCredential(user, password),
                 EnableSsl = true
             };
-        }
-
-        public void SendMail(string subject, string message)
-        {
-            try
-            {
-                client.Send(emailFrom, emailTo, subject, message);
-                Console.WriteLine($"Email {subject} sent");
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
         }
     }
 }
