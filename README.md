@@ -1,4 +1,4 @@
-﻿# Monitor de Cotação - B3
+# Monitor de Cotação - B3
 
 Monitor de Cotação - B3 é uma aplicação que consulta o preço de um ativo na B3. Dados os preços de venda e de compra, a aplicação recomenda via e-mail caso tenha uma alteração.
 
